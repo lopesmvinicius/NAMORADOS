@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desafio do Amor ❤️</title>
+    <!-- Tailwind CSS para design moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -14,21 +15,23 @@
         .btn-gradient { background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%); transition: transform 0.2s; }
         .btn-gradient:hover { transform: scale(1.05); }
         .hidden-section { display: none; }
-        .bahia-bg { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1590579495146-557477b186d3?q=80&w=1200'); background-size: cover; background-position: center; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
+    <!-- Áudio de Fundo -->
     <audio id="bgMusic" loop>
         <source src="https://www.bensound.com/bensound-music/bensound-tenderness.mp3" type="audio/mpeg">
     </audio>
 
     <div id="game-container" class="w-full max-w-md glass p-8 rounded-3xl shadow-2xl text-center relative overflow-hidden">
         
+        <!-- Música Toggle -->
         <button onclick="toggleMusic()" class="absolute top-4 right-4 text-rose-500 text-2xl">
             <span id="musicIcon">🔇</span>
         </button>
 
+        <!-- INTRO -->
         <div id="intro">
             <img src="entrada.jpg" class="w-full h-64 object-cover rounded-2xl mb-6 shadow-md" alt="Eu quero jogar um jogo">
             <h1 class="font-love text-4xl text-rose-600 mb-4">Olá, Mozão!</h1>
@@ -37,72 +40,67 @@
             <button onclick="startTrivia()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold shadow-lg">ESTOU PRONTA</button>
         </div>
 
+        <!-- TRIVIA (SISTEMA DE ETAPAS) -->
         <div id="trivia" class="hidden-section">
             <div id="question-box">
                 <span id="q-number" class="text-rose-400 font-bold">1 / 3</span>
                 <img id="q-image" src="" class="w-full h-48 object-cover rounded-xl my-4 shadow-md hidden" alt="Momento especial">
                 <h2 id="q-text" class="text-xl font-semibold my-4 text-gray-800">Pergunta aqui?</h2>
                 
-                <input type="text" id="ans-input" class="w-full p-3 border-2 border-rose-100 rounded-xl focus:border-rose-400 outline-none mb-4 text-center" placeholder="Sua resposta...">
+                <input type="text" id="ans-input" class="w-full p-3 border-2 border-rose-100 rounded-xl focus:border-rose-400 outline-none mb-4 text-center uppercase" placeholder="Sua resposta...">
                 
                 <button onclick="checkAnswer()" class="w-full btn-gradient text-white py-3 rounded-xl font-bold">CONFIRMAR</button>
             </div>
         </div>
 
+        <!-- LOCK 1 REVEAL -->
         <div id="lock1" class="hidden-section">
-            <h2 class="font-love text-3xl text-green-600 mb-4">Você conseguiu!</h2>
-            <p class="text-gray-600 mb-6">Você desbloqueou a primeira parte! Vá até o **1º presente** e abra com a senha:</p>
+            <h2 class="font-love text-3xl text-green-600 mb-4">Primeira Etapa Concluída!</h2>
+            <p class="text-gray-600 mb-6">Muito bem! Você desbloqueou o acesso ao primeiro compartimento. Use a senha abaixo para abrir:</p>
             <div class="text-5xl font-bold text-rose-600 mb-6 tracking-widest">098</div>
-            <p class="text-sm text-gray-500 italic mb-8">Pegou o Kit Sobrevivência? Deixe ele do seu lado e clique abaixo para continuar a missão!</p>
-            <button onclick="startPhase2()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold">PROSSEGUIR COM AS PISTAS</button>
+            <p class="text-sm text-gray-500 italic mb-8">Pegue o Kit Sobrevivência que está lá dentro, deixe-o do seu lado e clique no botão abaixo para continuar.</p>
+            <button onclick="startPhase2()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold">INICIAR FASE 2</button>
         </div>
 
-        <div id="final-phase" class="hidden-section">
-            <h2 class="text-2xl font-bold text-rose-600 mb-4">O Enigma Final</h2>
-            <p class="text-gray-600 mb-6">Agora junte as 3 palavras que você encontrou (do protetor, da saída de praia e da canga) para formar a frase secreta:</p>
-            <input type="text" id="final-input" class="w-full p-3 border-2 border-rose-100 rounded-xl mb-4 text-center uppercase" placeholder="DICA: VOCÊ É MEU...">
-            <button onclick="checkFinalPhrase()" class="w-full btn-gradient text-white py-3 rounded-xl font-bold">REVELAR DESTINO</button>
-        </div>
-
+        <!-- SURPRISE REVEAL (FINAL DO JOGO - APENAS SENHA) -->
         <div id="victory" class="hidden-section">
             <div class="mb-4">
-                <span class="text-5xl">🌴✈️🥥</span>
+                <span class="text-5xl">🔓✨🎉</span>
             </div>
-            <h1 class="font-love text-4xl text-rose-600 mb-2">ARRUMA AS MALAS!</h1>
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Nós vamos para a BAHIA! 🎉</h2>
+            <h1 class="font-love text-4xl text-rose-600 mb-2">VOCÊ CONSEGUIU!</h1>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Todos os enigmas foram desvendados!</h2>
             
-            <div class="bg-rose-50 p-5 rounded-2xl text-left text-sm text-rose-900 leading-relaxed mb-6 shadow-sm">
-                📍 <strong>Destino:</strong> Porto Seguro / Arraial d'Ajuda<br>
-                📅 <strong>Período:</strong> 12 a 19 de Setembro de 2026<br>
-                🏨 <strong>Hospedagem:</strong> No paraíso, com direito a praia, sol e comemoração do nosso amor!<br><br>
-                🔐 <strong>Senha do 2º Cadeado:</strong> <span class="font-bold text-lg text-rose-600 tracking-wider">417</span>
+            <div class="bg-rose-50 p-6 rounded-2xl text-center mb-6 shadow-sm">
+                <p class="text-gray-700 font-semibold mb-4">A combinação para abrir o segundo chaveiro é:</p>
+                <div class="text-5xl font-bold text-rose-600 tracking-widest mb-4">417</div>
+                <p class="text-sm text-gray-500 italic">Abra o cadeado e pegue o que está lá dentro... ❤️</p>
             </div>
             
-            <p class="text-gray-600 font-semibold mb-2">Para abrir e descobrir o resto das surpresas dentro do chaveiro!</p>
-            <p class="text-rose-500 font-love text-xl">Eu te amo demais, meu Porto Seguro! ❤️</p>
+            <p class="text-rose-500 font-love text-2xl">Te amo infinitamente! ❤️</p>
         </div>
 
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DAS FASES ---
-        // Fase 1: Perguntas normais de digitação
-        const phase1Questions = [
+        // --- CONFIGURAÇÃO RESTRITA DAS PERGUNTAS E ENIGMAS ---
+        const questions = [
+            // --- FASE 1 ---
             { q: "Qual foi a cidade que fizemos a nossa primeira viagem como casal?", a: "UBATUBA", img: "viagem_ubatuba.jpeg" },
             { q: "Qual o mês do nosso aniversário de namoro?", a: "JANEIRO", img: "aniversario.jpeg" },
-            { q: "Qual foi a data da nossa primeira viagem?", a: "28/10/2023", img: "foto_primeira_viagem.jpeg" }
+            { q: "Qual foi a data da nossa primeira viagem?", a: "28/10/2023", img: "foto_primeira_viagem.jpeg" },
+            
+            // --- FASE 2 (PERGUNTAS + PISTAS DOS PRESENTES) ---
+            { q: "Onde foi o nosso primeiro beijo?", a: "LEÕES", img: "primeiro_beijo.jpeg" },
+            { q: "RECOMPENSA: Vá até o primeiro presente, abra a tampa do protetor e digite a palavra secreta encontrada lá:", a: "VOCÊ", img: "foto_protetor.jpeg" },
+            
+            { q: "Pergunta romântica 2 aqui?", a: "RESPOSTA2", img: "foto_momento2.jpeg" },
+            { q: "RECOMPENSA: Agora olhe a etiqueta da sua saída de praia e digite a palavra/frase secreta encontrada lá:", a: "É MEU", img: "foto_saida.jpeg" },
+            
+            { q: "Qual é o nome da cidade impresso na sua CANGA?", a: "PORTO SEGURO", img: "foto_canga.jpeg" }
         ];
 
-        // Fase 2: Instruções físicas baseadas nos presentes + última pergunta da canga
-        const phase2Questions = [
-            { q: "Abra a tampa do protetor e guarde a palavra.", a: "OK", isInstruction: true, img: "foto_protetor.jpeg" },
-            { q: "Olhe a etiqueta da sua saída de praia, guarde a palavra.", a: "OK", isInstruction: true, img: "foto_saida.jpeg" },
-            { q: "Qual é o nome da cidade impresso na sua CANGA?", a: "PORTO SEGURO", isInstruction: false, img: "foto_canga.jpeg" }
-        ];
-
-        let questions = phase1Questions; // Começa com a Fase 1
         let currentQ = 0;
-        let isAtPhase2 = false;
+        let phase1Length = 3; // O jogo vai parar no primeiro cadeado após a 3ª pergunta (índice 2)
         const music = document.getElementById('bgMusic');
 
         function toggleMusic() {
@@ -123,10 +121,12 @@
 
         function showQuestion() {
             const question = questions[currentQ];
+            
+            // Mostra o número relativo da pergunta na tela
             document.getElementById('q-number').innerText = `${currentQ + 1} / ${questions.length}`;
             document.getElementById('q-text').innerText = question.q;
             
-            // Gerencia a exibição da foto do momento
+            // Gerencia a imagem
             const imgTag = document.getElementById('q-image');
             if (question.img) {
                 imgTag.src = question.img;
@@ -135,79 +135,60 @@
                 imgTag.classList.add('hidden');
             }
             
-            // Customiza o input baseado se é instrução ou pergunta real
+            // Customiza o placeholder para ajudar na digitação das palavras do presente
             const inputField = document.getElementById('ans-input');
-            if (question.isInstruction) {
-                inputField.placeholder = "Digite 'OK' assim que encontrar!";
+            if (question.q.includes("RECOMPENSA:")) {
+                inputField.placeholder = "Digite a palavra do presente aqui...";
             } else {
                 inputField.placeholder = "Sua resposta...";
             }
+            
             inputField.value = "";
         }
 
         function checkAnswer() {
             const userAns = document.getElementById('ans-input').value.toUpperCase().trim();
-            const currentAnswer = questions[currentQ].a;
+            
+            // Criando variações para aceitar com ou sem acento nas respostas das pistas físicas
+            let isCorrect = userAns === questions[currentQ].a;
+            if (questions[currentQ].a === "VOCÊ" && userAns === "VOCE") isCorrect = true;
+            if (questions[currentQ].a === "É MEU" && userAns === "E MEU") isCorrect = true;
 
-            if (userAns === currentAnswer) {
+            if (isCorrect) {
                 currentQ++;
-                if (currentQ < questions.length) {
+                
+                // Se acabou de responder a 3ª pergunta da Fase 1, vai pro primeiro cadeado
+                if (currentQ === phase1Length) {
+                    document.getElementById('trivia').classList.add('hidden-section');
+                    document.getElementById('lock1').classList.remove('hidden-section');
+                    confetti();
+                } 
+                // Se respondeu tudo, vai para a tela final de vitória
+                else if (currentQ >= questions.length) {
+                    document.getElementById('trivia').classList.add('hidden-section');
+                    document.getElementById('victory').classList.remove('hidden-section');
+                    
+                    // Chuva de confete final rápida para comemoração
+                    var end = Date.now() + (4 * 1000);
+                    (function frame() {
+                        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                        if (Date.now() < end) { requestAnimationFrame(frame); }
+                    }());
+                } 
+                // Se não, só passa para a próxima pergunta/instrução
+                else {
                     showQuestion();
-                } else {
-                    // Se terminou a lista atual
-                    if (!isAtPhase2) {
-                        // Terminou a Fase 1 -> Vai pro primeiro cadeado
-                        document.getElementById('trivia').classList.add('hidden-section');
-                        document.getElementById('lock1').classList.remove('hidden-section');
-                        confetti();
-                    } else {
-                        // Terminou a Fase 2 -> Vai para a validação da frase final
-                        document.getElementById('trivia').classList.add('hidden-section');
-                        document.getElementById('final-phase').classList.remove('hidden-section');
-                    }
                 }
             } else {
-                if (questions[currentQ].isInstruction) {
-                    alert("Encontre a palavra no presente e digite 'OK' para continuar!");
-                } else {
-                    alert("Errou! Tenta lembrar com carinho... ❤️");
-                }
+                alert("Resposta incorreta! Pense mais um pouquinho... ❤️");
             }
         }
 
         function startPhase2() {
-            // Vira a chave para a Fase 2
-            questions = phase2Questions;
-            currentQ = 0;
-            isAtPhase2 = true;
             document.getElementById('lock1').classList.add('hidden-section');
             document.getElementById('trivia').classList.remove('hidden-section');
             showQuestion();
-        }
-
-        function checkFinalPhrase() {
-            const phrase = document.getElementById('final-input').value.toUpperCase().trim();
-            // Aceita com ou sem acentos para não dar erro bobo
-            if (phrase === "VOCÊ É MEU PORTO SEGURO" || phrase === "VOCE E MEU PORTO SEGURO") {
-                document.getElementById('final-phase').classList.add('hidden-section');
-                document.getElementById('victory').classList.remove('hidden-section');
-                document.body.classList.add('bahia-bg');
-                
-                // Chuva de confete especial de 15 segundos
-                var duration = 15 * 1000;
-                var animationEnd = Date.now() + duration;
-                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-                var interval = setInterval(function() {
-                    var timeLeft = animationEnd - Date.now();
-                    if (timeLeft <= 0) return clearInterval(interval);
-                    var particleCount = 50 * (timeLeft / duration);
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
-                }, 250);
-
-            } else {
-                alert("Frase incorreta! Lembre-se de juntar as 3 palavras na ordem certa.");
-            }
         }
     </script>
 </body>
