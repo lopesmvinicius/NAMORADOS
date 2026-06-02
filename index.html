@@ -90,17 +90,21 @@
             { q: "Qual foi a data da nossa primeira viagem?", a: "28/10/2023", img: "foto_primeira_viagem.jpeg" },
             
             // --- FASE 2 (PERGUNTAS + PISTAS DOS PRESENTES) ---
+            // Bloco 1: Protetor
             { q: "Onde foi o nosso primeiro beijo?", a: "LEÕES", img: "primeiro_beijo.jpeg" },
             { q: "RECOMPENSA: Vá até o primeiro presente, abra a tampa do protetor e digite a palavra secreta encontrada lá:", a: "VOCÊ", img: "foto_protetor.jpeg" },
             
-            { q: "Pergunta romântica 2 aqui?", a: "RESPOSTA2", img: "foto_momento2.jpeg" },
-            { q: "RECOMPENSA: Agora olhe a etiqueta da sua saída de praia e digite a palavra/frase secreta encontrada lá:", a: "É MEU", img: "foto_saida.jpeg" },
+            // Bloco 2: Saída de Praia
+            { q: "Qual o nome do artista daquela música ('Bem Alto') que eu te mostrei e que virou trilha do nosso jeitinho de amar?", a: "DON L", img: "foto_musica.jpeg" },
+            { q: "RECOMPENSA: Muito bem! Agora olhe bem a etiqueta da sua saída de praia e digite a palavra secreta encontrada lá:", a: "É MEU", img: "foto_saida.jpeg" },
             
-            { q: "Qual é o nome da cidade impresso na sua CANGA?", a: "PORTO SEGURO", img: "foto_canga.jpeg" }
+            // Bloco 3: Descoberta do Local Físico (Canga) + Palavra Final
+            { q: "Para descobrir a última palavra, você precisa olhar para o maior item do Kit, feito para estender na areia. Qual é o nome desse acessório?", a: "CANGA", img: "foto_pista_canga.jpeg" },
+            { q: "RECOMPENSA: Vá até a canga, veja o nome da cidade paradisíaca impresso nela e digite aqui para liberar a senha final:", a: "PORTO SEGURO", img: "foto_canga.jpeg" }
         ];
 
         let currentQ = 0;
-        let phase1Length = 3; // O jogo vai parar no primeiro cadeado após a 3ª pergunta (índice 2)
+        let phase1Length = 3; 
         const music = document.getElementById('bgMusic');
 
         function toggleMusic() {
@@ -121,12 +125,9 @@
 
         function showQuestion() {
             const question = questions[currentQ];
-            
-            // Mostra o número relativo da pergunta na tela
             document.getElementById('q-number').innerText = `${currentQ + 1} / ${questions.length}`;
             document.getElementById('q-text').innerText = question.q;
             
-            // Gerencia a imagem
             const imgTag = document.getElementById('q-image');
             if (question.img) {
                 imgTag.src = question.img;
@@ -135,21 +136,18 @@
                 imgTag.classList.add('hidden');
             }
             
-            // Customiza o placeholder para ajudar na digitação das palavras do presente
             const inputField = document.getElementById('ans-input');
             if (question.q.includes("RECOMPENSA:")) {
-                inputField.placeholder = "Digite a palavra do presente aqui...";
+                inputField.placeholder = "Digite a palavra secreta...";
             } else {
                 inputField.placeholder = "Sua resposta...";
             }
-            
             inputField.value = "";
         }
 
         function checkAnswer() {
             const userAns = document.getElementById('ans-input').value.toUpperCase().trim();
             
-            // Criando variações para aceitar com ou sem acento nas respostas das pistas físicas
             let isCorrect = userAns === questions[currentQ].a;
             if (questions[currentQ].a === "VOCÊ" && userAns === "VOCE") isCorrect = true;
             if (questions[currentQ].a === "É MEU" && userAns === "E MEU") isCorrect = true;
@@ -157,18 +155,15 @@
             if (isCorrect) {
                 currentQ++;
                 
-                // Se acabou de responder a 3ª pergunta da Fase 1, vai pro primeiro cadeado
                 if (currentQ === phase1Length) {
                     document.getElementById('trivia').classList.add('hidden-section');
                     document.getElementById('lock1').classList.remove('hidden-section');
                     confetti();
                 } 
-                // Se respondeu tudo, vai para a tela final de vitória
                 else if (currentQ >= questions.length) {
                     document.getElementById('trivia').classList.add('hidden-section');
                     document.getElementById('victory').classList.remove('hidden-section');
                     
-                    // Chuva de confete final rápida para comemoração
                     var end = Date.now() + (4 * 1000);
                     (function frame() {
                         confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
@@ -176,7 +171,6 @@
                         if (Date.now() < end) { requestAnimationFrame(frame); }
                     }());
                 } 
-                // Se não, só passa para a próxima pergunta/instrução
                 else {
                     showQuestion();
                 }
