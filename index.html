@@ -42,6 +42,27 @@
 
         .reward-banner { background: linear-gradient(135deg, #fef9c3, #fde68a); border: 2px solid #fbbf24; border-radius: 16px; padding: 14px; margin-bottom: 16px; }
 
+        /* Imagem sem corte */
+        .q-img-wrap {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 12px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+        }
+        .q-img-wrap img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            display: block;
+        }
+
         /* Múltipla escolha */
         .mc-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
         .mc-btn {
@@ -90,7 +111,11 @@
 
             <div id="question-box" class="answer-box">
                 <span id="q-number" class="text-rose-400 font-bold text-sm"></span>
-                <img id="q-image" src="" class="w-full h-48 object-cover rounded-xl my-4 shadow-md hidden" alt="Momento especial">
+
+                <!-- Imagem sem corte -->
+                <div id="q-img-wrap" class="q-img-wrap" style="display:none;">
+                    <img id="q-image" src="" alt="Momento especial">
+                </div>
 
                 <div id="reward-banner" class="reward-banner hidden-section">
                     <span class="text-xl">🎁</span>
@@ -104,6 +129,7 @@
                     <input type="text" id="ans-input"
                         class="w-full p-3 border-2 border-rose-100 rounded-xl focus:border-rose-400 outline-none mb-4 text-center uppercase"
                         placeholder="Sua resposta..."
+                        oninput="handleDateMask(event)"
                         onkeydown="if(event.key==='Enter') checkAnswer()">
                     <button onclick="checkAnswer()" class="w-full btn-gradient text-white py-3 rounded-xl font-bold">CONFIRMAR</button>
                 </div>
@@ -158,7 +184,8 @@
                 q: "Qual foi a data da nossa primeira viagem?",
                 a: ["28/10/2023"],
                 img: "foto_primeira_viagem.jpeg",
-                hint: "Foi em outubro de 2023 🗓️"
+                hint: "Foi em outubro de 2023 🗓️",
+                isDate: true   // ← ativa máscara automática
             },
 
             // FASE 2 — Bloco 1
@@ -187,7 +214,7 @@
             {
                 isReward: true,
                 rewardText: "Ótimo! Agora abra o segundo presente e procure a palavra secreta escondida lá dentro:",
-                q: "Digite as duas palavra secretas encontradas:",
+                q: "Digite as duas palavras secretas encontradas:",
                 a: ["E MEU"],
                 img: "foto_saida.jpeg",
                 hint: "São duas palavrinhas curtinhas 💕"
@@ -203,7 +230,7 @@
                 options: ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
             },
 
-            // FASE 2 — Bloco 3: Canga (última — recompensa especial)
+            // FASE 2 — Bloco final: Canga
             {
                 isReward: true,
                 rewardText: "Agora que você já tem o VOCÊ É MEU... abra o seu terceiro presente e complete a frase! ❤️",
@@ -224,6 +251,24 @@
 
         function normalize(str) {
             return str.toUpperCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // ── MÁSCARA DE DATA ────────────────────────────────────────────────────────
+        function handleDateMask(e) {
+            const q = questions[currentQ];
+            if (!q || !q.isDate) return; // só aplica na pergunta de data
+
+            const input = e.target;
+            // Remove tudo que não for número ou /
+            let val = input.value.replace(/[^\d]/g, '');
+
+            // Formata como DD/MM/AAAA
+            let formatted = '';
+            if (val.length >= 1) formatted = val.substring(0, 2);
+            if (val.length >= 3) formatted += '/' + val.substring(2, 4);
+            if (val.length >= 5) formatted += '/' + val.substring(4, 8);
+
+            input.value = formatted;
         }
 
         function saveProgress() {
@@ -262,7 +307,6 @@
         function renderAttempts() {
             const q = questions[currentQ];
             const row = document.getElementById('attempts-row');
-            // Esconde bolinhas para múltipla escolha
             if (q && q.type === 'multiple_choice') { row.innerHTML = ''; return; }
             row.innerHTML = '';
             for (let i = 0; i < MAX_ATTEMPTS; i++) {
@@ -286,9 +330,15 @@
             const q = questions[currentQ];
             document.getElementById('q-number').innerText = `Pergunta ${currentQ + 1} de ${questions.length}`;
 
+            // Imagem sem corte
+            const wrap = document.getElementById('q-img-wrap');
             const imgTag = document.getElementById('q-image');
-            if (q.img) { imgTag.src = q.img; imgTag.classList.remove('hidden'); }
-            else { imgTag.classList.add('hidden'); }
+            if (q.img) {
+                imgTag.src = q.img;
+                wrap.style.display = 'flex';
+            } else {
+                wrap.style.display = 'none';
+            }
 
             const banner = document.getElementById('reward-banner');
             if (q.isReward) {
@@ -303,7 +353,6 @@
             document.getElementById('hint-box').classList.remove('visible');
             document.getElementById('hint-text').innerText = q.hint || '';
 
-            // Tipo de input
             const textArea = document.getElementById('text-input-area');
             const mcArea = document.getElementById('mc-input-area');
 
@@ -314,8 +363,11 @@
             } else {
                 textArea.classList.remove('hidden-section');
                 mcArea.classList.add('hidden-section');
-                document.getElementById('ans-input').value = '';
-                document.getElementById('ans-input').placeholder = q.isReward ? 'Digite a palavra secreta...' : 'Sua resposta...';
+                const input = document.getElementById('ans-input');
+                input.value = '';
+                input.placeholder = q.isDate ? 'DD/MM/AAAA' : (q.isReward ? 'Digite a palavra secreta...' : 'Sua resposta...');
+                // Uppercase só para não-data
+                input.style.textTransform = q.isDate ? 'none' : 'uppercase';
                 attemptsLeft = MAX_ATTEMPTS;
                 renderAttempts();
             }
@@ -326,10 +378,14 @@
         function renderMCOptions(options) {
             const container = document.getElementById('mc-options');
             container.innerHTML = '';
-            options.forEach(opt => {
+            // 5 opções: grid 2x2 + última centralizada
+            options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'mc-btn';
                 btn.textContent = opt;
+                if (options.length % 2 !== 0 && idx === options.length - 1) {
+                    btn.style.gridColumn = '1 / -1';
+                }
                 btn.onclick = () => checkMCAnswer(opt, btn);
                 container.appendChild(btn);
             });
@@ -341,7 +397,6 @@
 
             if (isCorrect) {
                 btn.classList.add('selected');
-                // Desabilita todos os botões
                 document.querySelectorAll('.mc-btn').forEach(b => b.onclick = null);
                 const box = document.getElementById('question-box');
                 box.classList.add('flash-correct');
@@ -352,7 +407,6 @@
             } else {
                 btn.classList.add('wrong');
                 setTimeout(() => btn.classList.remove('wrong'), 500);
-                // Mostra dica após errar
                 document.getElementById('hint-text').innerText = "Hmm, não foi essa... tente outra! 💭";
                 document.getElementById('hint-box').classList.add('visible');
                 setTimeout(() => document.getElementById('hint-box').classList.remove('visible'), 2000);
@@ -425,3 +479,5 @@
     </script>
 </body>
 </html>
+HTMLEOF
+echo "Done"
