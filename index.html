@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desafio do Amor ❤️</title>
-    <!-- Tailwind CSS para design moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -15,98 +14,219 @@
         .btn-gradient { background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%); transition: transform 0.2s; }
         .btn-gradient:hover { transform: scale(1.05); }
         .hidden-section { display: none; }
+
+        /* Barra de progresso com corações */
+        .hearts-bar { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .heart-step { font-size: 1.4rem; transition: transform 0.3s; }
+        .heart-step.done { transform: scale(1.2); filter: drop-shadow(0 0 4px #fb7185); }
+        .heart-step.current { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.3);} }
+
+        /* Feedback de resposta */
+        .answer-box { position: relative; }
+        .shake { animation: shake 0.4s ease; }
+        @keyframes shake {
+            0%,100%{transform:translateX(0);}
+            20%{transform:translateX(-8px);}
+            40%{transform:translateX(8px);}
+            60%{transform:translateX(-6px);}
+            80%{transform:translateX(6px);}
+        }
+        .flash-correct { animation: flashGreen 0.5s ease; }
+        @keyframes flashGreen { 0%{background:#dcfce7;} 100%{background:transparent;} }
+
+        /* Tentativas */
+        .attempts-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; }
+        .attempt-dot { width: 12px; height: 12px; border-radius: 50%; background: #fb7185; transition: background 0.3s; }
+        .attempt-dot.used { background: #fecdd3; }
+
+        /* Hint */
+        .hint-box { background: #fff7ed; border: 1px dashed #fb923c; border-radius: 12px; padding: 10px 14px; font-size: 0.82rem; color: #c2410c; margin-bottom: 10px; display: none; }
+        .hint-box.visible { display: block; }
+
+        /* RECOMPENSA */
+        .reward-banner { background: linear-gradient(135deg, #fef9c3, #fde68a); border: 2px solid #fbbf24; border-radius: 16px; padding: 14px; margin-bottom: 16px; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Áudio de Fundo -->
     <audio id="bgMusic" loop>
         <source src="https://www.bensound.com/bensound-music/bensound-tenderness.mp3" type="audio/mpeg">
     </audio>
 
     <div id="game-container" class="w-full max-w-md glass p-8 rounded-3xl shadow-2xl text-center relative overflow-hidden">
-        
-        <!-- Música Toggle -->
+
         <button onclick="toggleMusic()" class="absolute top-4 right-4 text-rose-500 text-2xl">
             <span id="musicIcon">🔇</span>
         </button>
 
         <!-- INTRO -->
         <div id="intro">
-            <img src="entrada.jpg" class="w-full h-64 object-cover rounded-2xl mb-6 shadow-md" alt="Eu quero jogar um jogo">
+            <img src="entrada.jpg" class="w-full h-64 object-cover rounded-2xl mb-6 shadow-md" alt="Capa">
             <h1 class="font-love text-4xl text-rose-600 mb-4">Olá, Mozão!</h1>
             <p class="text-gray-700 font-bold mb-4 italic text-lg">"Eu quero jogar um jogo..."</p>
             <p class="text-gray-600 mb-8 text-sm">Para ganhar seu presente, você precisa provar que conhece nossa história. Você tem coragem?</p>
             <button onclick="startTrivia()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold shadow-lg">ESTOU PRONTA</button>
         </div>
 
-        <!-- TRIVIA (SISTEMA DE ETAPAS) -->
+        <!-- TRIVIA -->
         <div id="trivia" class="hidden-section">
-            <div id="question-box">
-                <span id="q-number" class="text-rose-400 font-bold">1 / 3</span>
+
+            <!-- Barra de corações -->
+            <div class="hearts-bar" id="hearts-bar"></div>
+
+            <!-- Tentativas -->
+            <div class="attempts-row" id="attempts-row"></div>
+
+            <!-- Hint -->
+            <div class="hint-box" id="hint-box">💡 <span id="hint-text"></span></div>
+
+            <div id="question-box" class="answer-box">
+                <span id="q-number" class="text-rose-400 font-bold text-sm"></span>
                 <img id="q-image" src="" class="w-full h-48 object-cover rounded-xl my-4 shadow-md hidden" alt="Momento especial">
-                <h2 id="q-text" class="text-xl font-semibold my-4 text-gray-800">Pergunta aqui?</h2>
-                
-                <input type="text" id="ans-input" class="w-full p-3 border-2 border-rose-100 rounded-xl focus:border-rose-400 outline-none mb-4 text-center uppercase" placeholder="Sua resposta...">
-                
+
+                <!-- Banner de RECOMPENSA (aparece só quando é pergunta de recompensa) -->
+                <div id="reward-banner" class="reward-banner hidden-section">
+                    <span class="text-xl">🎁</span>
+                    <p id="reward-text" class="text-amber-800 font-semibold text-sm mt-1"></p>
+                </div>
+
+                <h2 id="q-text" class="text-xl font-semibold my-4 text-gray-800"></h2>
+
+                <input type="text" id="ans-input"
+                    class="w-full p-3 border-2 border-rose-100 rounded-xl focus:border-rose-400 outline-none mb-4 text-center uppercase"
+                    placeholder="Sua resposta..."
+                    onkeydown="if(event.key==='Enter') checkAnswer()">
+
                 <button onclick="checkAnswer()" class="w-full btn-gradient text-white py-3 rounded-xl font-bold">CONFIRMAR</button>
             </div>
         </div>
 
         <!-- LOCK 1 REVEAL -->
         <div id="lock1" class="hidden-section">
-            <h2 class="font-love text-3xl text-green-600 mb-4">Primeira Etapa Concluída!</h2>
-            <p class="text-gray-600 mb-6">Muito bem! Você desbloqueou o acesso ao primeiro compartimento. Use a senha abaixo para abrir:</p>
+            <h2 class="font-love text-3xl text-green-600 mb-4">Primeira Etapa Concluída! 🎉</h2>
+            <p class="text-gray-600 mb-6">Muito bem! Você desbloqueou o acesso ao primeiro compartimento. Use a senha abaixo:</p>
             <div class="text-5xl font-bold text-rose-600 mb-6 tracking-widest">098</div>
-            <p class="text-sm text-gray-500 italic mb-8">Pegue o Kit Sobrevivência que está lá dentro, deixe-o do seu lado e clique no botão abaixo para continuar.</p>
-            <button onclick="startPhase2()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold">INICIAR FASE 2</button>
+            <p class="text-sm text-gray-500 italic mb-8">Pegue o Kit Sobrevivência que está lá dentro, deixe-o do seu lado e clique abaixo para continuar.</p>
+            <button onclick="startPhase2()" class="btn-gradient text-white px-8 py-3 rounded-full font-bold">INICIAR FASE 2 🔓</button>
         </div>
 
-        <!-- SURPRISE REVEAL (FINAL DO JOGO - APENAS SENHA) -->
+        <!-- VITÓRIA FINAL -->
         <div id="victory" class="hidden-section">
-            <div class="mb-4">
-                <span class="text-5xl">🔓✨🎉</span>
-            </div>
+            <div class="mb-4"><span class="text-5xl">🔓✨🎉</span></div>
             <h1 class="font-love text-4xl text-rose-600 mb-2">VOCÊ CONSEGUIU!</h1>
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Todos os enigmas foram desvendados!</h2>
-            
             <div class="bg-rose-50 p-6 rounded-2xl text-center mb-6 shadow-sm">
                 <p class="text-gray-700 font-semibold mb-4">A combinação para abrir o segundo chaveiro é:</p>
                 <div class="text-5xl font-bold text-rose-600 tracking-widest mb-4">417</div>
                 <p class="text-sm text-gray-500 italic">Abra o cadeado e pegue o que está lá dentro... ❤️</p>
             </div>
-            
             <p class="text-rose-500 font-love text-2xl">Te amo infinitamente! ❤️</p>
         </div>
 
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO RESTRITA DAS PERGUNTAS E ENIGMAS ---
+        // ─── PERGUNTAS ────────────────────────────────────────────────────────────
         const questions = [
-            // --- FASE 1 ---
-            { q: "Qual foi a cidade que fizemos a nossa primeira viagem como casal?", a: "UBATUBA", img: "viagem_ubatuba.jpeg" },
-            { q: "Qual o mês do nosso aniversário de namoro?", a: "JANEIRO", img: "aniversario.jpeg" },
-            { q: "Qual foi a data da nossa primeira viagem?", a: "28/10/2023", img: "foto_primeira_viagem.jpeg" },
-            
-            // --- FASE 2 (PERGUNTAS + PISTAS DOS PRESENTES) ---
-            // Bloco 1: Protetor
-            { q: "Onde foi o nosso primeiro beijo?", a: "LEÕES", img: "primeiro_beijo.jpeg" },
-            { q: "RECOMPENSA: Vá até o primeiro presente, abra a tampa do protetor e digite a palavra secreta encontrada lá:", a: "VOCÊ", img: "foto_protetor.jpeg" },
-            
-            // Bloco 2: Saída de Praia
-            { q: "Qual o nome do artista daquela música ('Bem Alto') que eu te mostrei e que virou trilha do nosso jeitinho de amar?", a: "DON L", img: "foto_musica.jpeg" },
-            { q: "RECOMPENSA: Muito bem! Agora olhe bem a etiqueta da sua saída de praia e digite a palavra secreta encontrada lá:", a: "É MEU", img: "foto_saida.jpeg" },
-            
-            // Bloco 3: Descoberta do Local Físico (Canga) + Palavra Final
-            { q: "Para descobrir a última palavra, você precisa olhar para o maior item do Kit, feito para estender na areia. Qual é o nome desse acessório?", a: "CANGA", img: "foto_pista_canga.jpeg" },
-            { q: "RECOMPENSA: Vá até a canga, veja o nome da cidade paradisíaca impresso nela e digite aqui para liberar a senha final:", a: "PORTO SEGURO", img: "foto_canga.jpeg" }
+            // FASE 1
+            {
+                q: "Qual foi a cidade que fizemos a nossa primeira viagem como casal?",
+                a: "UBATUBA",
+                img: "viagem_ubatuba.jpeg",
+                hint: "Foi uma cidade litorânea de São Paulo 🌊"
+            },
+            {
+                q: "Qual o mês do nosso aniversário de namoro?",
+                a: "JANEIRO",
+                img: "aniversario.jpeg",
+                hint: "É o primeiro mês do ano ❄️"
+            },
+            {
+                q: "Qual foi a data da nossa primeira viagem?",
+                a: "28/10/2023",
+                img: "foto_primeira_viagem.jpeg",
+                hint: "Foi em outubro de 2023 🗓️"
+            },
+
+            // FASE 2 — Bloco 1: Protetor
+            {
+                q: "Onde foi o nosso primeiro beijo?",
+                a: "LEÕES",
+                img: "primeiro_beijo.jpeg",
+                hint: "Pensa num lugar com um nome poderoso 🦁"
+            },
+            {
+                isReward: true,
+                rewardText: "Vá até o primeiro presente, abra a tampa do protetor e procure a palavra secreta escondida lá dentro:",
+                q: "Digite a palavra secreta encontrada no protetor solar:",
+                a: "VOCÊ",
+                img: "foto_protetor.jpeg",
+                hint: "É uma palavra de apenas 4 letras 🤫"
+            },
+
+            // FASE 2 — Bloco 2: Saída de Praia
+            {
+                q: "Qual foi o primeiro show que assistimos juntos?",
+                a: "MATO SECO",
+                img: "foto_show.jpeg",
+                hint: "É o nome de uma banda/artista 🎶"
+            },
+            {
+                isReward: true,
+                rewardText: "Ótimo! Agora olhe com atenção na etiqueta da sua saída de praia e encontre a palavra secreta:",
+                q: "Digite a palavra secreta encontrada na etiqueta da saída de praia:",
+                a: "É MEU",
+                img: "foto_saida.jpeg",
+                hint: "São duas palavrinhas curtinhas 💕"
+            },
+
+            // FASE 2 — Bloco 3: Canga
+            {
+                q: "Para descobrir a última palavra, olhe o maior item do Kit — feito para estender na areia. Qual é o nome desse acessório?",
+                a: "CANGA",
+                img: "foto_pista_canga.jpeg",
+                hint: "É uma peça de tecido usada na praia 🏖️"
+            },
+            {
+                isReward: true,
+                rewardText: "Vá até a canga, veja o nome da cidade paradisíaca impressa nela e digite aqui para liberar a senha final:",
+                q: "Qual cidade está impressa na canga?",
+                a: "PORTO SEGURO",
+                img: "foto_canga.jpeg",
+                hint: "É uma cidade famosa da Bahia 🌴"
+            }
         ];
 
+        // ─── ESTADO ───────────────────────────────────────────────────────────────
+        const SAVE_KEY = 'desafio_amor_progress';
+        const MAX_ATTEMPTS = 3;
+        const phase1Length = 3;
+
         let currentQ = 0;
-        let phase1Length = 3; 
+        let attemptsLeft = MAX_ATTEMPTS;
         const music = document.getElementById('bgMusic');
 
+        // ─── SALVAR / CARREGAR PROGRESSO ─────────────────────────────────────────
+        function saveProgress() {
+            localStorage.setItem(SAVE_KEY, JSON.stringify({ currentQ }));
+        }
+
+        function loadProgress() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+                if (saved && typeof saved.currentQ === 'number' && saved.currentQ > 0) {
+                    const resume = confirm(`Você parou na pergunta ${saved.currentQ + 1}. Quer continuar de onde parou?`);
+                    if (resume) {
+                        currentQ = saved.currentQ;
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        // ─── MÚSICA ───────────────────────────────────────────────────────────────
         function toggleMusic() {
             if (music.paused) {
                 music.play();
@@ -117,72 +237,174 @@
             }
         }
 
+        // ─── BARRA DE CORAÇÕES ────────────────────────────────────────────────────
+        function renderHearts() {
+            const bar = document.getElementById('hearts-bar');
+            bar.innerHTML = '';
+            questions.forEach((_, i) => {
+                const span = document.createElement('span');
+                span.className = 'heart-step';
+                if (i < currentQ) {
+                    span.textContent = '❤️';
+                    span.classList.add('done');
+                } else if (i === currentQ) {
+                    span.textContent = '🤍';
+                    span.classList.add('current');
+                } else {
+                    span.textContent = '🤍';
+                }
+                bar.appendChild(span);
+            });
+        }
+
+        // ─── BOLINHAS DE TENTATIVAS ───────────────────────────────────────────────
+        function renderAttempts() {
+            const row = document.getElementById('attempts-row');
+            row.innerHTML = '';
+            for (let i = 0; i < MAX_ATTEMPTS; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'attempt-dot' + (i >= attemptsLeft ? ' used' : '');
+                row.appendChild(dot);
+            }
+        }
+
+        // ─── INICIAR JOGO ─────────────────────────────────────────────────────────
         function startTrivia() {
+            const resumed = loadProgress();
             document.getElementById('intro').classList.add('hidden-section');
+
+            // Se retomou e estava no lock1 (phase1Length) ou além
+            if (currentQ === phase1Length) {
+                document.getElementById('lock1').classList.remove('hidden-section');
+                return;
+            }
+            if (currentQ >= questions.length) {
+                showVictory();
+                return;
+            }
+
             document.getElementById('trivia').classList.remove('hidden-section');
+            attemptsLeft = MAX_ATTEMPTS;
             showQuestion();
         }
 
+        // ─── MOSTRAR PERGUNTA ─────────────────────────────────────────────────────
         function showQuestion() {
-            const question = questions[currentQ];
-            document.getElementById('q-number').innerText = `${currentQ + 1} / ${questions.length}`;
-            document.getElementById('q-text').innerText = question.q;
-            
+            const q = questions[currentQ];
+            document.getElementById('q-number').innerText = `Pergunta ${currentQ + 1} de ${questions.length}`;
+
+            // Imagem
             const imgTag = document.getElementById('q-image');
-            if (question.img) {
-                imgTag.src = question.img;
+            if (q.img) {
+                imgTag.src = q.img;
                 imgTag.classList.remove('hidden');
             } else {
                 imgTag.classList.add('hidden');
             }
-            
-            const inputField = document.getElementById('ans-input');
-            if (question.q.includes("RECOMPENSA:")) {
-                inputField.placeholder = "Digite a palavra secreta...";
+
+            // Banner de recompensa
+            const banner = document.getElementById('reward-banner');
+            if (q.isReward) {
+                document.getElementById('reward-text').innerText = q.rewardText;
+                banner.classList.remove('hidden-section');
+                document.getElementById('q-text').innerText = '';
             } else {
-                inputField.placeholder = "Sua resposta...";
+                banner.classList.add('hidden-section');
+                document.getElementById('q-text').innerText = q.q;
             }
-            inputField.value = "";
+
+            // Input
+            document.getElementById('ans-input').value = '';
+            document.getElementById('ans-input').placeholder = q.isReward ? 'Digite a palavra secreta...' : 'Sua resposta...';
+
+            // Hint
+            document.getElementById('hint-box').classList.remove('visible');
+            document.getElementById('hint-text').innerText = q.hint || '';
+
+            attemptsLeft = MAX_ATTEMPTS;
+            renderAttempts();
+            renderHearts();
         }
 
+        // ─── VERIFICAR RESPOSTA ───────────────────────────────────────────────────
         function checkAnswer() {
-            const userAns = document.getElementById('ans-input').value.toUpperCase().trim();
-            
-            let isCorrect = userAns === questions[currentQ].a;
-            if (questions[currentQ].a === "VOCÊ" && userAns === "VOCE") isCorrect = true;
-            if (questions[currentQ].a === "É MEU" && userAns === "E MEU") isCorrect = true;
+            let userAns = document.getElementById('ans-input').value.toUpperCase().trim();
+            // Normaliza acentos simples
+            userAns = userAns.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            let correctAns = questions[currentQ].a.toUpperCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            const isCorrect = userAns === correctAns;
 
             if (isCorrect) {
+                // Flash verde no container
+                const box = document.getElementById('question-box');
+                box.classList.add('flash-correct');
+                setTimeout(() => box.classList.remove('flash-correct'), 500);
+
                 currentQ++;
-                
-                if (currentQ === phase1Length) {
-                    document.getElementById('trivia').classList.add('hidden-section');
-                    document.getElementById('lock1').classList.remove('hidden-section');
-                    confetti();
-                } 
-                else if (currentQ >= questions.length) {
-                    document.getElementById('trivia').classList.add('hidden-section');
-                    document.getElementById('victory').classList.remove('hidden-section');
-                    
-                    var end = Date.now() + (4 * 1000);
-                    (function frame() {
-                        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
-                        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
-                        if (Date.now() < end) { requestAnimationFrame(frame); }
-                    }());
-                } 
-                else {
-                    showQuestion();
-                }
+                saveProgress();
+
+                setTimeout(() => {
+                    if (currentQ === phase1Length) {
+                        document.getElementById('trivia').classList.add('hidden-section');
+                        document.getElementById('lock1').classList.remove('hidden-section');
+                        confetti();
+                    } else if (currentQ >= questions.length) {
+                        document.getElementById('trivia').classList.add('hidden-section');
+                        showVictory();
+                    } else {
+                        showQuestion();
+                    }
+                }, 400);
+
             } else {
-                alert("Resposta incorreta! Pense mais um pouquinho... ❤️");
+                // Erro
+                attemptsLeft--;
+                renderAttempts();
+
+                const input = document.getElementById('ans-input');
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 400);
+
+                if (attemptsLeft <= 0) {
+                    // Mostra dica e reseta tentativas
+                    document.getElementById('hint-box').classList.add('visible');
+                    attemptsLeft = MAX_ATTEMPTS;
+                    renderAttempts();
+                } else {
+                    const msg = attemptsLeft === 1
+                        ? "Última tentativa antes da dica! 💭"
+                        : `Não foi dessa vez! Tente mais ${attemptsLeft}x ❤️`;
+                    // Pequena mensagem inline em vez de alert
+                    const hintBox = document.getElementById('hint-box');
+                    document.getElementById('hint-text').innerText = msg;
+                    hintBox.classList.add('visible');
+                    setTimeout(() => {
+                        if (attemptsLeft > 0) hintBox.classList.remove('visible');
+                    }, 2000);
+                }
             }
         }
 
+        // ─── FASE 2 ───────────────────────────────────────────────────────────────
         function startPhase2() {
             document.getElementById('lock1').classList.add('hidden-section');
             document.getElementById('trivia').classList.remove('hidden-section');
             showQuestion();
+        }
+
+        // ─── VITÓRIA ──────────────────────────────────────────────────────────────
+        function showVictory() {
+            localStorage.removeItem(SAVE_KEY); // limpa progresso salvo
+            document.getElementById('victory').classList.remove('hidden-section');
+            var end = Date.now() + (4 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
         }
     </script>
 </body>
